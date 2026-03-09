@@ -3,6 +3,7 @@ using SpaceDefence.Collision;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 
 namespace SpaceDefence
 {
@@ -16,12 +17,22 @@ namespace SpaceDefence
         private RectangleCollider _rectangleCollider;
         private Point target;
 
+        private Vector2 _velocity = Vector2.Zero;
+        public Vector2 Velocity => _velocity;
+        private Vector2 _acceleration = Vector2.Zero;
+        private const float AccelerationSpeed = 400f;
+        private const float SpeedMult = 5f;
+        private const float Friction = 4f;
+        private Vector2 _position;
+        private float _shipAngle = 0;
+
         /// <summary>
         /// The player character
         /// </summary>
         /// <param name="Position">The ship's starting position</param>
         public Ship(Point Position)
         {
+            _position = Position.ToVector2();
             _rectangleCollider = new RectangleCollider(new Rectangle(Position, Point.Zero));
             SetCollider(_rectangleCollider);
         }
@@ -43,6 +54,23 @@ namespace SpaceDefence
         {
             base.HandleInput(inputManager);
             target = inputManager.CurrentMouseState.Position;
+
+            // WASD movement input
+            _acceleration = Vector2.Zero;
+            if (inputManager.IsKeyDown(Keys.W))
+                _acceleration.Y -= SpeedMult;
+            if (inputManager.IsKeyDown(Keys.A)) 
+                _acceleration.X -= SpeedMult;
+            if (inputManager.IsKeyDown(Keys.S))
+                _acceleration.Y += SpeedMult;
+            if (inputManager.IsKeyDown(Keys.D)) 
+                _acceleration.X += SpeedMult;
+            if (_acceleration != Vector2.Zero)
+            {
+                _acceleration.Normalize();
+                _acceleration *= SpeedMult;
+            }
+
             if(inputManager.LeftMousePress())
             {
 
@@ -61,16 +89,32 @@ namespace SpaceDefence
 
         public override void Update(GameTime gameTime)
         {
+            float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
+
             // Update the Buff timer
             if (buffTimer > 0)
-                buffTimer -= (float)gameTime.ElapsedGameTime.TotalSeconds;
+                buffTimer -= dt;
+
+            // Apply acceleration and friction
+            _velocity += _acceleration * AccelerationSpeed * dt;
+            _velocity -= _velocity * Friction * dt;
+
+            if (_velocity != Vector2.Zero)
+                _shipAngle = LinePieceCollider.GetAngle(_velocity);
+
+            // Move position
+            _position += _velocity * dt;
+
+            // Sync collider to position
+            _rectangleCollider.shape.Location = _position.ToPoint();
 
             base.Update(gameTime);
         }
 
         public override void Draw(GameTime gameTime, SpriteBatch spriteBatch)
         {
-            spriteBatch.Draw(ship_body, _rectangleCollider.shape, Color.White);
+            Vector2 origin = ship_body.Bounds.Size.ToVector2() / 2f;
+            spriteBatch.Draw(ship_body, _rectangleCollider.shape.Center.ToVector2(), null, Color.White, _shipAngle, origin, 1f, SpriteEffects.None, 0);
             float aimAngle = LinePieceCollider.GetAngle(LinePieceCollider.GetDirection(GetPosition().Center, target));
             if (buffTimer <= 0)
             {
