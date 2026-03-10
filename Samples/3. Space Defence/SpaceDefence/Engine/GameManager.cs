@@ -9,6 +9,13 @@ using Microsoft.Xna.Framework.Input;
 
 namespace SpaceDefence
 {
+    public enum GameState
+    {
+        MainMenu,
+        Playing,
+        Paused
+    }
+
     public class GameManager
     {
         private static GameManager gameManager;
