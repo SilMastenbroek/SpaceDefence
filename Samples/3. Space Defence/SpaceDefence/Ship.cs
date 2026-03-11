@@ -1,9 +1,10 @@
-﻿using System;
-using SpaceDefence.Collision;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using SpaceDefence.Collision;
+using SpaceDefence.Engine;
+using System;
 
 namespace SpaceDefence
 {
@@ -53,7 +54,10 @@ namespace SpaceDefence
         public override void HandleInput(InputManager inputManager)
         {
             base.HandleInput(inputManager);
-            target = inputManager.CurrentMouseState.Position;
+
+            // Convert screen coordinates (mouse) to world coordinates
+            Camera camera = GameManager.GetGameManager().Camera;
+            target = camera.ScreenToWorld(inputManager.CurrentMouseState.Position.ToVector2()).ToPoint();
 
             // WASD movement input
             _acceleration = Vector2.Zero;

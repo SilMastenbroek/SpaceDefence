@@ -6,6 +6,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using SpaceDefence.Engine;
 
 namespace SpaceDefence
 {
@@ -25,10 +26,14 @@ namespace SpaceDefence
         private List<GameObject> _toBeAdded;
         private ContentManager _content;
 
+        public const int WorldWidth = 4000;
+        public const int WorldHeight = 2400;
+
         public Random RNG { get; private set; }
         public Ship Player { get; private set; }
         public InputManager InputManager { get; private set; }
         public Game Game { get; private set; }
+        public Camera Camera { get; private set; }
 
         public static GameManager GetGameManager()
         {
@@ -50,6 +55,7 @@ namespace SpaceDefence
             Game = game;
             _content = content;
             Player = player;
+            Camera = new Camera(game.GraphicsDevice, WorldWidth, WorldHeight);
         }
 
         public void Load(ContentManager content)
@@ -102,6 +108,8 @@ namespace SpaceDefence
             // Check Collission
             CheckCollision();
 
+            Camera.Update(Player.GetPosition().Center.ToVector2());
+
             foreach (GameObject gameObject in _toBeAdded)
             {
                 gameObject.Load(_content);
@@ -119,11 +127,14 @@ namespace SpaceDefence
 
         public void Draw(GameTime gameTime, SpriteBatch spriteBatch) 
         {
-            spriteBatch.Begin();
+            // Ensure that everything moves with the camera
+            spriteBatch.Begin(transformMatrix: Camera.WorldTransform);
+
             foreach (GameObject gameObject in _gameObjects)
             {
                 gameObject.Draw(gameTime, spriteBatch);
             }
+
             spriteBatch.End();
         }
 
@@ -155,8 +166,8 @@ namespace SpaceDefence
         public Vector2 RandomScreenLocation()
         {
             return new Vector2(
-                RNG.Next(0, Game.GraphicsDevice.Viewport.Width),
-                RNG.Next(0, Game.GraphicsDevice.Viewport.Height));
+                RNG.Next(0, WorldWidth),
+                RNG.Next(0, WorldHeight));
         }
     }
 }
