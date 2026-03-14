@@ -32,6 +32,7 @@ namespace SpaceDefence
         public Random RNG { get; private set; }
         public Ship Player { get; private set; }
         public InputManager InputManager { get; private set; }
+        public SpawnManager Spawner { get; private set; }
         public Game Game { get; private set; }
         public Camera Camera { get; private set; }
 
@@ -48,6 +49,7 @@ namespace SpaceDefence
             _toBeAdded = new List<GameObject>();
             InputManager = new InputManager();
             RNG = new Random();
+            Spawner = new SpawnManager(this);
         }
 
         public void Initialize(ContentManager content, Game game, Ship player)
@@ -98,12 +100,13 @@ namespace SpaceDefence
             // Handle input
             HandleInput(InputManager);
 
-
             // Update
             foreach (GameObject gameObject in _gameObjects)
             {
                 gameObject.Update(gameTime);
             }
+
+            Spawner.Update(gameTime);
 
             // Check Collission
             CheckCollision();
