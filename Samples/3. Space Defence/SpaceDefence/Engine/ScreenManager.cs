@@ -18,6 +18,10 @@ namespace SpaceDefence.Engine
         private GraphicsDevice _graphicsDevice;
         private InputManager _inputManager;
 
+        // Add this timer variable to wait after the player dies
+        private double _deathTimer = 1.0f;
+        private bool _isDying = false;
+
         public GameState CurrentState => _currentState;
 
         public ScreenManager()
@@ -35,9 +39,26 @@ namespace SpaceDefence.Engine
             _overlayTexture.SetData(new[] { Color.White });
         }
 
-        public void Update()
+        public void Update(GameTime gameTime)
         {
             _inputManager.Update();
+
+            // When we're playing, and the player has just died
+            if (_currentState == GameState.Playing && GameManager.GetGameManager().IsGameOver == true && !_isDying)
+                _isDying = true;
+
+            // Count down so we see the explosion first, and end the game if the time runs out
+            if (_isDying)
+            {
+                _deathTimer -= gameTime.ElapsedGameTime.TotalSeconds;
+
+                if (_deathTimer <= 0)
+                {
+                    _isDying = false;
+                    _deathTimer = 1.25f;
+                    _currentState = GameState.GameOver;
+                }
+            }
 
             switch (_currentState)
             {
@@ -49,13 +70,23 @@ namespace SpaceDefence.Engine
                     break;
 
                 case GameState.Playing:
-                    if (_inputManager.IsKeyPress(Keys.Escape))
+                    if (_inputManager.IsKeyPress(Keys.Escape) && !_isDying)
                         _currentState = GameState.Paused;
                     break;
 
                 case GameState.Paused:
                     if (_inputManager.IsKeyPress(Keys.Enter))
                         _currentState = GameState.Playing;
+                    if (_inputManager.IsKeyPress(Keys.Q))
+                        GameManager.GetGameManager().Game.Exit();
+                    break;
+
+                case GameState.GameOver:
+                    if (_inputManager.IsKeyPress(Keys.Enter))
+                    {
+                        GameManager.GetGameManager().ResetGame();
+                        _currentState = GameState.Playing;
+                    }
                     if (_inputManager.IsKeyPress(Keys.Q))
                         GameManager.GetGameManager().Game.Exit();
                     break;
@@ -71,6 +102,9 @@ namespace SpaceDefence.Engine
                     break;
                 case GameState.Paused:
                     DrawPause(spriteBatch);
+                    break;
+                case GameState.GameOver:
+                    DrawGameOver(spriteBatch);
                     break;
             }
         }
@@ -109,6 +143,25 @@ namespace SpaceDefence.Engine
             DrawCenteredText(spriteBatch, "PAUSED", center + new Vector2(0, -120), Color.White, 3f);
             DrawCenteredText(spriteBatch, "Press ENTER to continue", center, Color.LightGreen, 1.2f);
             DrawCenteredText(spriteBatch, "Press Q to quit the game", center + new Vector2(0, 60), Color.OrangeRed, 1.2f);
+
+            spriteBatch.End();
+        }
+
+        private void DrawGameOver(SpriteBatch spriteBatch)
+        {
+            Vector2 center = new Vector2(
+                _graphicsDevice.Viewport.Width / 2f,
+                _graphicsDevice.Viewport.Height / 2f);
+
+            spriteBatch.Begin();
+
+            // Red overlay (0.6f = semi-transparant)
+            spriteBatch.Draw(_overlayTexture, _graphicsDevice.Viewport.Bounds, Color.DarkRed * 0.6f);
+
+            // Tekst
+            DrawCenteredText(spriteBatch, "GAME OVER", center + new Vector2(0, -120), Color.Red, 4f);
+            DrawCenteredText(spriteBatch, "Press ENTER to restart", center, Color.LightGreen, 1.2f);
+            DrawCenteredText(spriteBatch, "Press Q to quit the game", center + new Vector2(0, 60), Color.Yellow, 1.2f);
 
             spriteBatch.End();
         }

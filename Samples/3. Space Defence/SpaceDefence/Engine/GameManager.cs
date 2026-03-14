@@ -14,7 +14,8 @@ namespace SpaceDefence
     {
         MainMenu,
         Playing,
-        Paused
+        Paused,
+        GameOver
     }
 
     public class GameManager
@@ -35,6 +36,7 @@ namespace SpaceDefence
         public SpawnManager Spawner { get; private set; }
         public Game Game { get; private set; }
         public Camera Camera { get; private set; }
+        public bool IsGameOver { get; set; } = false;
 
         public static GameManager GetGameManager()
         {
@@ -171,6 +173,28 @@ namespace SpaceDefence
             return new Vector2(
                 RNG.Next(0, WorldWidth),
                 RNG.Next(0, WorldHeight));
+        }
+
+        public void ResetGame()
+        {
+            // Clear the level completely
+            _gameObjects.Clear();
+            _toBeRemoved.Clear();
+            _toBeAdded.Clear();
+
+            // Create a new player in the middle
+            Player = new Ship(new Point(WorldWidth / 2, WorldHeight / 2));
+
+            // Add the basic objects back
+            AddGameObject(Player);
+            AddGameObject(new Alien());
+            AddGameObject(new Asteroid());
+            AddGameObject(new Supply());
+
+            // Reset the spawn manager timers
+            Spawner = new SpawnManager(this);
+
+            IsGameOver = false;
         }
     }
 }

@@ -52,7 +52,7 @@ namespace SpaceDefence
         protected override void Update(GameTime gameTime)
         {
             // Always update ScreenManager first, so it can handle input and change the game state if needed.
-            _screenManager.Update();
+            _screenManager.Update(gameTime);
 
             if (_screenManager.CurrentState == GameState.Playing)
             {

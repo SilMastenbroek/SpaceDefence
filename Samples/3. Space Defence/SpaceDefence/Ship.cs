@@ -151,6 +151,7 @@ namespace SpaceDefence
             // Spawn the explosion at the player's center
             Explosion explosion = new Explosion(this._rectangleCollider.shape.Center.ToVector2(), 2.0f);
             GameManager.GetGameManager().AddGameObject(explosion);
+            GameManager.GetGameManager().IsGameOver = true;
 
             base.Destroy();
         }
