@@ -44,12 +44,8 @@ namespace SpaceDefence
 
         public override void OnCollision(GameObject other)
         {
-            // If it collides with the Player
-            if (other is Ship)
-                GameManager.GetGameManager().Game.Exit();
-
-            // If it collides with an Alien
-            else if (other is Alien)
+            // If it collides with the Player of Alien
+            if (other is Ship || other is Alien)
                 GameManager.GetGameManager().RemoveGameObject(other);
 
             base.OnCollision(other);
@@ -60,6 +56,15 @@ namespace SpaceDefence
             // Draw the asteroid. Its position is the bounding box of the circleCollider.
             spriteBatch.Draw(_texture, _circleCollider.GetBoundingBox(), Color.White);
             base.Draw(gameTime, spriteBatch);
+        }
+
+        public override void Destroy()
+        {
+            // Add an explosion at the center of the Asteroid
+            Explosion explosion = new Explosion(this._circleCollider.Center, 1.2f);
+            GameManager.GetGameManager().AddGameObject(explosion);
+
+            base.Destroy();
         }
     }
 }

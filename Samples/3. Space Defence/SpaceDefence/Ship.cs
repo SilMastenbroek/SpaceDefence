@@ -145,5 +145,14 @@ namespace SpaceDefence
         {
             return _rectangleCollider.shape;
         }
+
+        public override void Destroy()
+        {
+            // Spawn the explosion at the player's center
+            Explosion explosion = new Explosion(this._rectangleCollider.shape.Center.ToVector2(), 2.0f);
+            GameManager.GetGameManager().AddGameObject(explosion);
+
+            base.Destroy();
+        }
     }
 }

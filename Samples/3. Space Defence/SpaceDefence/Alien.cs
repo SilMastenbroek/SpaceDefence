@@ -32,11 +32,22 @@ namespace SpaceDefence
 
         public override void OnCollision(GameObject other)
         {
-            _accelerationSpeed += SpeedIncrease;
-            RandomMove();
+            // If the alien is hit by a bullet or laser, destroy it
+            if (other is Bullet || other is Laser)
+            {
+                GameManager.GetGameManager().RemoveGameObject(this);
+            }
+
+            // e.g., on player collision, use SpeedIncrease
+            else if (other is Ship || other is Alien)
+            {
+                _accelerationSpeed += SpeedIncrease;
+                RandomMove();
+            }
+
             base.OnCollision(other);
         }
-
+        
         public void RandomMove()
         {
             GameManager gm = GameManager.GetGameManager();
@@ -68,7 +79,7 @@ namespace SpaceDefence
             // Check if alien is too close to the player
             Vector2 playerPos = gm.Player.GetPosition().Center.ToVector2();
             if ((_circleCollider.Center - playerPos).Length() < playerClearance)
-                gm.Game.Exit();
+                gm.RemoveGameObject(gm.Player);
 
             base.Update(gameTime);
         }
@@ -79,6 +90,13 @@ namespace SpaceDefence
             base.Draw(gameTime, spriteBatch);
         }
 
+        public override void Destroy()
+        {
+            // Add an explosion at the center of the Alien
+            Explosion explosion = new Explosion(this._circleCollider.Center, 1.5f);
+            GameManager.GetGameManager().AddGameObject(explosion);
 
+            base.Destroy();
+        }
     }
 }
